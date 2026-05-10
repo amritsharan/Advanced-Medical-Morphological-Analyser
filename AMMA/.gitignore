@@ -1,0 +1,15 @@
+# Build and temporary files
+/build/
+/*.o
+/*.obj
+/*.exe
+
+# OpenCV build artifacts
+*.xml
+
+# VSCode
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
