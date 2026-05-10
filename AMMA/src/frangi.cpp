@@ -18,13 +18,14 @@ void computeFrangi(const cv::Mat& lambda1, const cv::Mat& lambda2, cv::Mat& vess
     const float twoBetaSq = 2.0f * beta * beta;
     const float twoCSq = 2.0f * c * c;
 
-    // Parallelize pixel-wise computation
+    // Parallelize pixel-wise computation (OpenMP outer, SIMD inner)
     #pragma omp parallel for schedule(static)
     for (int y = 0; y < rows; ++y) {
         const float* pL1 = lambda1.ptr<float>(y);
         const float* pL2 = lambda2.ptr<float>(y);
         float* pV = vesselness.ptr<float>(y);
 
+        #pragma omp simd
         for (int x = 0; x < cols; ++x) {
             float l1 = pL1[x];
             float l2 = pL2[x];
@@ -56,6 +57,7 @@ void computeFrangi(const cv::Mat& lambda1, const cv::Mat& lambda2, cv::Mat& vess
             pV[x] = V;
         }
     }
+    // For further speedup, consider explicit SIMD (e.g., with xsimd or compiler intrinsics) for large images.
 
     // Normalize to [0,1] robustly (optional but helpful for visualization)
     double minv, maxv;

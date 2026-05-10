@@ -15,16 +15,19 @@ async function loadWasm(moduleUrl) {
   });
 }
 
-async function runWasmProcess(Module, imageData, width, height, sigma, beta, c) {
+
+// Accepts filterName as last argument
+async function runWasmProcess(Module, imageData, width, height, sigma, beta, c, filterName) {
   // imageData: Uint8Array grayscale
-  const process_image = Module.cwrap('process_image_kernel', 'number', ['number','number','number','number','number','number']);
+  // filterName: string (passed as pointer to C string)
+  const process_image = Module.cwrap('process_image_kernel', 'number', ['number','number','number','number','number','number','string']);
   const free_buffer = Module.cwrap('free_buffer', 'void', ['number']);
 
   const nBytes = imageData.length;
   const ptr = Module._malloc(nBytes);
   Module.HEAPU8.set(imageData, ptr);
 
-  const outPtr = process_image(ptr, width, height, sigma, beta, c);
+  const outPtr = process_image(ptr, width, height, sigma, beta, c, filterName);
   Module._free(ptr);
   if (!outPtr) throw new Error('WASM processing failed');
 

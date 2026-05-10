@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes" />
   <title>AMMA — Advanced Medical Morphological Analyzer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app" class="app-shell">
+  <div id="app" class="app-shell" role="main">
     <header class="topbar">
       <div class="brand">AMMA</div>
       <nav class="actions">
@@ -22,11 +22,17 @@
         <div class="panel-section">
           <h3>Input</h3>
           <input id="file-input" type="file" accept="image/*,.dcm" />
+                    <label for="file-input" class="visually-hidden">Choose image or DICOM file</label>
           <div id="dicom-meta" class="meta-box">No DICOM loaded.</div>
         </div>
 
         <div class="panel-section">
           <h3>Processing</h3>
+          <label for="filter-select">Filter</label>
+          <select id="filter-select" name="filter-select">
+            <option value="Frangi">Frangi</option>
+            <!-- More filters will be populated dynamically -->
+          </select>
           <label>Scale (σ)
             <input id="scale" type="range" min="0.5" max="5" step="0.1" value="1.0" />
             <span id="scale-val">1.0</span>
@@ -41,6 +47,7 @@
           </label>
 
           <div class="progress" id="progress" aria-hidden="true">Idle</div>
+                  <div class="sr-only" aria-live="polite" id="aria-progress"></div>
         </div>
 
         <div class="panel-section">
@@ -53,13 +60,18 @@
       <section class="center-panel">
         <div class="canvas-wrap">
           <canvas id="image-canvas" width="1024" height="768"></canvas>
+                    <canvas id="image-canvas" width="1024" height="768" tabindex="0" aria-label="Image canvas for results display"></canvas>
           <div id="overlay" class="overlay">Results overlay</div>
         </div>
         <div class="controls-row">
           <button id="zoom-in">+</button>
+                    <button id="zoom-in" aria-label="Zoom in">+</button>
           <button id="zoom-out">−</button>
+                    <button id="zoom-out" aria-label="Zoom out">−</button>
           <button id="measure">Measure</button>
+                    <button id="measure" aria-label="Activate measurement tool">Measure</button>
           <button id="toggle-overlay">Toggle Overlay</button>
+                  <button id="toggle-overlay" aria-label="Toggle overlay visibility">Toggle Overlay</button>
         </div>
       </section>
 
@@ -73,7 +85,16 @@
         <div class="panel-section">
           <h3>Export</h3>
           <button id="export-png">Export PNG</button>
+                    <button id="export-png" aria-label="Export as PNG">Export PNG</button>
           <button id="export-report">Export Report (PDF)</button>
+                  <button id="export-report" aria-label="Export as PDF">Export Report (PDF)</button>
+          <style>
+            .visually-hidden, .sr-only {
+              position: absolute !important;
+              width: 1px; height: 1px; padding: 0; margin: -1px;
+              overflow: hidden; clip: rect(0,0,0,0); border: 0;
+            }
+          </style>
         </div>
       </aside>
     </main>

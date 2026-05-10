@@ -1,0 +1,32 @@
+# GitHub Actions CI for AMMA: C++/OpenCV build and test
+name: Build and Test (C++/OpenCV)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libopencv-dev
+
+      - name: Build project
+        run: |
+          cd AMMA
+          mkdir -p build && cd build
+          cmake ..
+          make
+
+      - name: Run tests (if present)
+        run: |
+          cd AMMA/build
+          if [ -f frangi_demo ]; then ./frangi_demo --help || true; fi

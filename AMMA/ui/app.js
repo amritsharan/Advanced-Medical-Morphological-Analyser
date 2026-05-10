@@ -5,6 +5,17 @@
 import { loadWasm, runWasmProcess } from './wasm_loader.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Filter dropdown population (placeholder, to be replaced with dynamic fetch from backend/wasm)
+    const filterSelect = document.getElementById('filter-select');
+    // Example: populate with available filters (in real app, fetch from backend or WASM API)
+    const availableFilters = ['Frangi']; // TODO: fetch dynamically
+    filterSelect.innerHTML = '';
+    availableFilters.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f;
+      opt.textContent = f;
+      filterSelect.appendChild(opt);
+    });
   const fileInput = document.getElementById('file-input');
   const canvas = document.getElementById('image-canvas');
   const ctx = canvas.getContext('2d');
@@ -13,13 +24,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const progress = document.getElementById('progress');
   let Module = null;
 
+  const ariaProgress = document.getElementById('aria-progress');
+  function setProgress(msg, busy=false) {
+    progress.textContent = msg;
+    progress.setAttribute('aria-busy', busy ? 'true' : 'false');
+    ariaProgress.textContent = msg;
+  }
   try {
-    progress.textContent = 'Loading WASM...';
+    setProgress('Loading WASM...', true);
     Module = await loadWasm('amma_kernel_wasm.js');
-    progress.textContent = 'WASM loaded';
+    setProgress('WASM loaded');
   } catch (e) {
     console.error('Failed to load WASM', e);
-    progress.textContent = 'WASM load failed';
+    setProgress('WASM load failed');
   }
 
   scaleSlider.addEventListener('input', () => {
@@ -29,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   fileInput.addEventListener('change', (ev) => {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
+    setProgress('Loading image...', true);
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
@@ -37,20 +55,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         canvas.width = Math.min(img.width, 2048);
         canvas.height = Math.min(img.height, 2048 * (img.height/img.width));
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        progress.textContent = 'Image loaded';
+        setProgress('Image loaded');
       };
+      img.onerror = () => setProgress('Image load failed');
       img.src = e.target.result;
     };
+    reader.onerror = () => setProgress('File read error');
     reader.readAsDataURL(f);
   });
 
   document.getElementById('run-processing').addEventListener('click', () => {
-    if (!Module) { progress.textContent = 'WASM not available'; return; }
-    progress.textContent = 'Processing...';
+    if (!Module) { setProgress('WASM not available'); return; }
+    setProgress('Processing...', true);
 
     // extract grayscale from canvas
     const w = canvas.width; const h = canvas.height;
-    const imgData = ctx.getImageData(0,0,w,h);
+    if (w === 0 || h === 0) { setProgress('No image loaded'); return; }
+    let imgData;
+    try {
+      imgData = ctx.getImageData(0,0,w,h);
+    } catch (e) {
+      setProgress('Failed to read canvas');
+      return;
+    }
     const gray = new Uint8Array(w*h);
     for (let i=0, j=0; i<imgData.data.length; i+=4, j++) {
       // luma
@@ -61,13 +88,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sigma = parseFloat(scaleSlider.value);
     const beta = 0.5;
     const c = 15.0;
+    const filterName = filterSelect.value;
 
-    runWasmProcess(Module, gray, w, h, sigma, beta, c).then(rgba => {
+    // Pass filterName to WASM backend (update runWasmProcess to accept it)
+    runWasmProcess(Module, gray, w, h, sigma, beta, c, filterName).then(rgba => {
       // draw returned RGBA buffer onto canvas
       const out = new ImageData(new Uint8ClampedArray(rgba), w, h);
       ctx.putImageData(out, 0, 0);
-      progress.textContent = 'Done';
-    }).catch(err => { console.error(err); progress.textContent = 'Processing failed'; });
+      setProgress('Done');
+    }).catch(err => {
+      console.error(err);
+      setProgress('Processing failed');
+    });
   });
 
 });

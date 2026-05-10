@@ -57,26 +57,28 @@ void computeHessianEigen(const cv::Mat& srcIn, cv::Mat& lambda1, cv::Mat& lambda
 	const int rows = src.rows;
 	const int cols = src.cols;
 
-	#pragma omp parallel for schedule(static)
-	for (int y = 0; y < rows; ++y) {
-		const float* pLxx = Lxx.ptr<float>(y);
-		const float* pLyy = Lyy.ptr<float>(y);
-		const float* pLxy = Lxy.ptr<float>(y);
-		float* pE1 = lambda1.ptr<float>(y);
-		float* pE2 = lambda2.ptr<float>(y);
-		float* pAng = angle ? angle->ptr<float>(y) : nullptr;
+	   // OpenMP parallel for outer, SIMD inner for large images
+	   #pragma omp parallel for schedule(static)
+	   for (int y = 0; y < rows; ++y) {
+		   const float* pLxx = Lxx.ptr<float>(y);
+		   const float* pLyy = Lyy.ptr<float>(y);
+		   const float* pLxy = Lxy.ptr<float>(y);
+		   float* pE1 = lambda1.ptr<float>(y);
+		   float* pE2 = lambda2.ptr<float>(y);
+		   float* pAng = angle ? angle->ptr<float>(y) : nullptr;
 
-		for (int x = 0; x < cols; ++x) {
-			float a = pLxx[x];
-			float b = pLxy[x];
-			float c = pLyy[x];
+		   #pragma omp simd
+		   for (int x = 0; x < cols; ++x) {
+			   float a = pLxx[x];
+			   float b = pLxy[x];
+			   float c = pLyy[x];
 
-			float t = 0.5f * (a + c);
-			float diff = 0.5f * (a - c);
-			float d = std::sqrt(diff*diff + b*b);
+			   float t = 0.5f * (a + c);
+			   float diff = 0.5f * (a - c);
+			   float d = std::sqrt(diff*diff + b*b);
 
-			float e1 = t - d;
-			float e2 = t + d;
+			   float e1 = t - d;
+			   float e2 = t + d;
 
 			// Order by absolute value (|e1| <= |e2|)
 			if (std::fabs(e1) <= std::fabs(e2)) {
