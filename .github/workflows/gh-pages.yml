@@ -1,0 +1,27 @@
+name: Deploy UI to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'AMMA/ui/**'
+      - '.github/workflows/gh-pages.yml'
+
+# Allow the action to write to the repository
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    concurrency: ci-${{ github.ref }} # Prevent concurrent runs from overwriting each other
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: AMMA/ui # The folder the action should deploy.
+          branch: gh-pages # The branch the action should deploy to.
