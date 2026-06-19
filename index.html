@@ -5,15 +5,48 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes" />
   <title>AMMA — Advanced Medical Morphological Analyzer</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Modern Typography (Inter Font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Glassmorphic Login Overlay -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">AMMA</div>
+      <h2>Advanced Medical Morphological Analyzer</h2>
+      <p class="login-subtitle">Please authenticate to access the image analysis suite.</p>
+      
+      <!-- Username / Password Login Form -->
+      <form id="login-form" class="login-form">
+        <div class="input-group">
+          <label for="username" class="sr-only">Username</label>
+          <input type="text" id="username" name="username" placeholder="Username" required />
+        </div>
+        <div class="input-group">
+          <label for="password" class="sr-only">Password</label>
+          <input type="password" id="password" name="password" placeholder="Password" required />
+        </div>
+        <div id="login-error" class="login-error" style="display: none;"></div>
+        <button type="submit" class="submit-btn">Sign In</button>
+        <p class="credential-hint">Demo: admin / password123</p>
+      </form>
+    </div>
+  </div>
+
   <div id="app" class="app-shell" role="main">
     <header class="topbar">
       <div class="brand">AMMA</div>
       <nav class="actions">
         <button id="open-file">Open Image / DICOM</button>
         <button id="run-processing">Run Analysis</button>
-        <div class="user-hint">Prototype UI (design-focused)</div>
+        <div id="user-profile" class="user-profile-header" style="display: none;">
+          <img id="user-avatar" class="user-avatar" src="" alt="User Avatar" />
+          <span id="user-name" class="user-name"></span>
+          <button id="logout-button" class="logout-btn">Sign Out</button>
+        </div>
+        <div id="user-hint-placeholder" class="user-hint">Prototype UI (design-focused)</div>
       </nav>
     </header>
 
